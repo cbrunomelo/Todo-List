@@ -46,8 +46,12 @@ namespace mvc.Controllers
                 return NotFound();
             }
 
+            if (todo.User != User.Identity.Name)
+                return NotFound();
+
             return View(todo);
-        }
+
+            }
 
         // GET: Todo/Create
         public IActionResult Create()
@@ -61,14 +65,14 @@ namespace mvc.Controllers
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Title,CreatedAt,LastUpdate")] CreateTodoViewModels model)
+        public async Task<IActionResult> Create([Bind("Title")] CreateTodoViewModels model)
         {
             var todo = new Todo
             {
                 Title = model.Title,
                 Done = false,
-                CreatedAt = model.CreatedAt,
-                LastUpdate = model.LastUpdate,
+                CreatedAt = DateTime.Now,
+                LastUpdate = DateTime.Now,
                 User = User!.Identity.Name,
                 Id = 0
             };
@@ -98,6 +102,9 @@ namespace mvc.Controllers
             {
                 return NotFound();
             }
+            if (todo.User != User.Identity.Name)
+                return NotFound();
+
             return View(todo);
         }
 
@@ -106,34 +113,48 @@ namespace mvc.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Done,CreatedAt,LastUpdate,User")] Todo todo)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Done")] EditorTodoViewModel model)
         {
-            if (id != todo.Id)
+            if (id != model.Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
+            var todo = await _context.Todos.FirstOrDefaultAsync(x => x.Id == model.Id);
+
+            if (!ModelState.IsValid)
+            
+                return View(todo);
+
+            if (todo.User != User.Identity.Name)
+                return NotFound();
+
+            try
+                {   
+                    
+                    todo.Title = model.Title;
+                    todo.Done = model.Done;
+                    todo.LastUpdate = DateTime.Now;
                     _context.Update(todo);
                     await _context.SaveChangesAsync();
                 }
-                catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException)
                 {
                     if (!TodoExists(todo.Id))
                     {
                         return NotFound();
                     }
-                    else
+            else
                     {
                         throw;
                     }
                 }
                 return RedirectToAction(nameof(Index));
-            }
-            return View(todo);
+           
+
+
+
+            //return View(todo);
         }
 
         // GET: Todo/Delete/5
@@ -150,6 +171,8 @@ namespace mvc.Controllers
             {
                 return NotFound();
             }
+            if (todo.User != User.Identity.Name)
+                return NotFound();
 
             return View(todo);
         }

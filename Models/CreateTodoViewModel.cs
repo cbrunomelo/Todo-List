@@ -11,8 +11,4 @@ public class CreateTodoViewModels
     [Required(ErrorMessage = "Campo Obrigatório")]
     public string Title { get; set; }
 
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-    [DisplayName("Última atualização")]
-    public DateTime LastUpdate { get; set; } = DateTime.Now;
 }
